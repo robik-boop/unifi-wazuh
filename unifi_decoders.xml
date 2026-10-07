@@ -5,7 +5,7 @@ Jul 30 05:35:34 udr7 CEF:0|Ubiquiti|UniFi Network|9.3.45|400|WiFi Client Connect
 -->
 
 <decoder name="unifi">
-  <program_name>CEF</program_name>
+  <program_name>^CEF$</program_name>
 </decoder>
 
 <!-- traffic (syslog) -->
@@ -24,290 +24,418 @@ Jul 30 05:35:34 udr7 CEF:0|Ubiquiti|UniFi Network|9.3.45|400|WiFi Client Connect
 <!-- base -->
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2" offset="after_parent">0\|Ubiquiti\|(.+)\|(\d*\.*\d*\.*\d*)\|(\d+)\|(.+)\|(\d{1,2})\|</regex>
+  <regex type="pcre2" offset="after_parent">^0\|Ubiquiti\|((?:\\.|[^|\\])+)\|([^|]+)\|([^|]+)\|((?:\\.|[^|\\])+)\|(\d{1,2})\|</regex>
   <order>uni_app, app_version, event_id, type, severity</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
   <!-- Aug 23 17:55:30 udr7 CEF:0|Ubiquiti|UniFi OS|4.3.9|updates|1|msg=Network has been updated to 9.3.45. -->
-  <regex type="pcre2">UniFi OS\|(\d*\.*\d*\.*\d*)\|(\w+)\|(\d)\|msg=(.+)</regex>
+  <regex type="pcre2">UniFi OS\|(\d*\.*\d*\.*\d*)\|(\w+)\|(\d)\|msg=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>app_version, type, severity, message</order>
 </decoder>
 
 <!-- kv start -->
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIcategory=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIcategory=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_cat</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIsubCategory=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsubCategory=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_subcat</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIhost=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIhost=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_host</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIutcTime=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIutcTime=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_utctime</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">msg=(.+)</regex>
+  <regex type="pcre2">(?:^|[|\s])msg=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>message</order>
 </decoder>
 
 <!-- config changes -->
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIsettingsSection=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsettingsSection=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_changedsection</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIsettingsEntry=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsettingsEntry=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_changedentry</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIadmin=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIadmin=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_changeagent</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIaccessMethod=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIaccessMethod=(\w+)</regex>
   <order>uni_accessway</order>
 </decoder>
 
 <!-- wifi -->
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIwifiName=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIwifiName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_ssid</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIWiFiRssi=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])(?:UNIFIWiFiRssi|UNIFIlastConnectedToWiFiRssi)=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_rssi</order>
 </decoder>
 
 <!-- traffic/threat -->
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">proto=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])proto=(\w+)</regex>
   <order>proto</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">app=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])app=(\w+)</regex>
   <order>applayerproto</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">src=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
+  <regex type="pcre2">(?:^|[|\s])src=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
   <order>srcip</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">spt=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])spt=(\d+)</regex>
   <order>srcprt</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">dst=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
+  <regex type="pcre2">(?:^|[|\s])dst=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
   <order>dstip</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">dpt=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])dpt=(\d+)</regex>
   <order>dstprt</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIrisk=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIrisk=(\w+)</regex>
   <order>uni_risk</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIipsSignature=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIipsSignature=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_signature</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIipsSignatureId=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIipsSignatureId=(\d+)</regex>
   <order>uni_sigid</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIipsSessionId=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIipsSessionId=(\d+)</regex>
   <order>uni_ipssessionid</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdirection=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdirection=(\w+)</regex>
   <order>uni_flowdirection</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIsrcZone=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsrcZone=(\w+)</regex>
   <order>uni_srczone</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdstZone=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdstZone=(\w+)</regex>
   <order>uni_dstzone</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdstRegion=(\w+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdstRegion=(\w+)</regex>
   <order>uni_dstregion</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdstDomain=(\S+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdstDomain=(\S+)</regex>
   <order>uni_dstdomain</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIbytesSent=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIbytesSent=(\d+)</regex>
   <order>uni_sentbytes</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIbytesReceived=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIbytesReceived=(\d+)</regex>
   <order>uni_receivedbytes</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFItotalBytes=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFItotalBytes=(\d+)</regex>
   <order>uni_totalbytes</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIpolicyName=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIpolicyName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_policyname</order>
 </decoder>
 
 <!-- client/device/network descriptors -->
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFInetworkName=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFInetworkName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_netname</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFInetworkSubnet=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFInetworkSubnet=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_netsubnet</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFInetworkVlan=(\d+)</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFInetworkVlan=(\d+)</regex>
   <order>uni_netvlan</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIwanName=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIwanName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_wanname</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdeviceName=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdeviceName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_devname</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdeviceModel=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdeviceModel=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_devmodel</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdeviceIp=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdeviceIp=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
   <order>uni_devip</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIdeviceMac=([0-9a-fA-F:]{17})</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIdeviceMac=([0-9a-fA-F:]{17})</regex>
   <order>uni_devmac</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIduration=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIduration=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_duration</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIclientAlias=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIclientAlias=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_clientdev</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIclientMac=([0-9a-fA-F:]{17})</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIclientMac=([0-9a-fA-F:]{17})</regex>
   <order>uni_clientmac</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIclientIp=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIclientI[pP]=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
   <order>uni_clientip</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIsrcClientAlias=(.+?)(?=\s(?:UNIFI\w+=|src=|dst=|spt=|dpt=|proto=|msg=))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsrcClientAlias=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
   <order>uni_clientdev</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIsrcClientMac=([0-9a-fA-F:]{17})</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsrcClientMac=([0-9a-fA-F:]{17})</regex>
   <order>uni_clientmac</order>
 </decoder>
 
 <decoder name="unifi">
   <parent>unifi</parent>
-  <regex type="pcre2">UNIFIsrcClientIp=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsrcClientIp=((?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]{2,39}))</regex>
   <order>uni_clientip</order>
+</decoder>
+
+<!-- Additional documented CEF context and standard Wazuh fields.
+     Keep values escaped as received; these regexes do not implement CEF unescaping. -->
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])spt=(\d+)(?=\s|$)</regex>
+  <order>srcport</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])dpt=(\d+)(?=\s|$)</regex>
+  <order>dstport</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])proto=(\w+)(?=\s|$)</regex>
+  <order>protocol</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIclientHostname=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_clienthostname</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIconnectedToDeviceName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_connecteddevname</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIconnectedToDeviceIp=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_connecteddevip</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIconnectedToDeviceMac=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_connecteddevmac</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIconnectedToDeviceModel=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_connecteddevmodel</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIlastConnectedToDeviceName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_lastdevname</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIlastConnectedToDeviceIp=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_lastdevip</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIlastConnectedToDeviceMac=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_lastdevmac</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIlastConnectedToDeviceModel=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_lastdevmodel</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIwifiBand=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_wifiband</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIwifiChannel=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_wifichannel</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIwifiChannelWidth=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_wifichannelwidth</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIauthMethod=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_authmethod</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIsettingsChanges=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_settingschanges</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIfailoverWanName=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_failoverwanname</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIattemptedConnectionMethod=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_attemptedmethod</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])UNIFIattemptedConnectionSource=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_attemptedsource</order>
+</decoder>
+
+<decoder name="unifi">
+  <parent>unifi</parent>
+  <regex type="pcre2">(?:^|[|\s])reason=(.+?)(?=\s+[A-Za-z][A-Za-z0-9_]*=|$)</regex>
+  <order>uni_reason</order>
 </decoder>
 
 <!-- hostapd device syslog -->

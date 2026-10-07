@@ -47,7 +47,7 @@
   </rule>
   <rule id="100121" level="7">
     <if_sid>100102</if_sid>
-    <field name="event_id">203</field>
+    <field name="type" type="pcre2">^Blocked by Firewall$</field>
     <description>Blocked by Firewall: Policy $(uni_policyname)</description>
     <group>pci_dss_1.3.2,pci_dss_11.4,nist_800_53_SC-7,nist_800_53_SI-4,hipaa_164.312(e)(1),mitre_t1071</group>
   </rule>
@@ -71,21 +71,24 @@
   <!-- wifi events -->
   <rule id="100112" level="3">
     <if_sid>100102</if_sid>
-    <field name="event_id">400</field>
-    <field name="uni_cat">Client Devices</field>
+    <field name="type" type="pcre2">^WiFi Client Connected$</field>
+    <field name="event_id">^400$</field>
+    <field name="uni_cat" type="pcre2">^(?:Client Devices|Monitoring)$</field>
     <description>WiFi Client Connected: $(uni_clientdev) to $(uni_ssid)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,nist_800_53_AU-3,hipaa_164.312(b),mitre_t1078</group>
   </rule>
   <rule id="100113" level="3">
     <if_sid>100102</if_sid>
-    <field name="event_id">401</field>
-    <field name="uni_cat">Client Devices</field>
+    <field name="type" type="pcre2">^WiFi Client Disconnected$</field>
+    <field name="event_id">^401$</field>
+    <field name="uni_cat" type="pcre2">^(?:Client Devices|Monitoring)$</field>
     <description>WiFi Client Disconnected: $(uni_clientdev) from $(uni_ssid)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,nist_800_53_AU-3,hipaa_164.312(b),mitre_t1078</group>
   </rule>
    <rule id="100117" level="3">
     <if_sid>100102</if_sid>
-    <field name="event_id">402</field>
+    <field name="type" type="pcre2">^WiFi Client Roaming$</field>
+    <field name="event_id">^402$</field>
     <description>WiFi Client Roaming: $(uni_clientdev)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,hipaa_164.312(b),mitre_t1078</group>
   </rule>
@@ -93,7 +96,8 @@
   <!-- admin access -->
   <rule id="100114" level="5">
     <if_sid>100102</if_sid>
-    <field name="event_id">544</field>
+    <field name="type" type="pcre2">^Admin Accessed UniFi(?: Network)?$</field>
+    <field name="event_id">^544$</field>
     <description>Admin Accessed UniFi via $(uni_accessway)</description>
     <group>pci_dss_10.2.2,nist_800_53_AC-6,nist_800_53_AU-3,hipaa_164.312(a)(1),mitre_t1078</group>
   </rule>
@@ -101,19 +105,22 @@
   <!-- device events -->
   <rule id="100115" level="5">
     <if_sid>100102</if_sid>
-    <field name="event_id">200</field><!-- very likely legacy id -->
+    <field name="type" type="pcre2">^Device Adopted$</field>
+    <field name="event_id">^200$</field><!-- very likely legacy id -->
     <description>UniFi Device Adopted: $(uni_devname)</description>
     <group>pci_dss_11.2,nist_800_53_CM-8,hipaa_164.310(d)(1),mitre_t1200</group>
   </rule>
   <rule id="100131" level="8">
     <if_sid>100102</if_sid>
-    <field name="event_id">511</field>
+    <field name="type" type="pcre2">^Device Update Failed$</field>
+    <field name="event_id">^511$</field>
     <description>UniFi Device Update Failed: $(uni_devname)</description>
     <group>nist_800_53_SI-2,hipaa_164.308(a)(1)</group>
   </rule>
   <rule id="100116" level="8">
     <if_sid>100102</if_sid>
-    <field name="event_id">512</field>
+    <field name="type" type="pcre2">^Device Offline$</field>
+    <field name="event_id">^512$</field>
     <description>UniFi Device Offline: $(uni_devname)</description>
     <group>pci_dss_10.6,nist_800_53_SI-4,hipaa_164.312(b),mitre_t1489</group>
   </rule>
@@ -121,69 +128,77 @@
   <!-- wired client events -->
   <rule id="100108" level="3">
     <if_sid>100102</if_sid>
-    <field name="event_id">403</field>
+    <field name="type" type="pcre2">^Wired Client Connected$</field>
+    <field name="event_id">^403$</field>
     <description>Wired Client Connected: $(uni_clientdev)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,nist_800_53_AU-3,hipaa_164.312(b),mitre_t1078</group>
   </rule>
   <rule id="100109" level="3">
     <if_sid>100102</if_sid>
-    <field name="event_id">404</field>
+    <field name="type" type="pcre2">^Wired Client Disconnected$</field>
+    <field name="event_id">^404$</field>
     <description>Wired Client Disconnected: $(uni_clientdev)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,nist_800_53_AU-3,hipaa_164.312(b),mitre_t1078</group>
   </rule>
   <!-- legacy wired event_id's, to be reviewed -->
   <rule id="100118" level="3">
     <if_sid>100102</if_sid>
-    <field name="event_id">302</field>
+    <field name="type" type="pcre2">^Wired Client Connected$</field>
+    <field name="event_id">^302$</field>
     <description>Wired Client Connected: $(uni_clientdev)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,nist_800_53_AU-3,hipaa_164.312(b),mitre_t1078</group>
   </rule>
   <rule id="100119" level="3">
     <if_sid>100102</if_sid>
-    <field name="event_id">303</field>
+    <field name="type" type="pcre2">^Wired Client Disconnected$</field>
+    <field name="event_id">^303$</field>
     <description>Wired Client Disconnected: $(uni_clientdev)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,nist_800_53_AU-3,hipaa_164.312(b),mitre_t1078</group>
   </rule>
 
-  <!-- security events / disabling for event id review
+  <!-- Match the documented name instead of guessing a new honeypot event ID. -->
   <rule id="100120" level="12">
     <if_sid>100102</if_sid>
-    <field name="event_id">401</field>
-    <field name="uni_cat">Security</field>
+    <field name="type" type="pcre2">^Honeypot Triggered$</field>
+    <field name="uni_cat">^Security$</field>
     <description>Honeypot Triggered from $(srcip)</description>
+    <mitre><id>T1046</id></mitre>
     <group>pci_dss_11.4,nist_800_53_SI-4,nist_800_53_SI-3,hipaa_164.308(a)(5)(ii)(B),mitre_t1046</group>
   </rule>
-  -->
 
   <!-- WAN events -->
   <rule id="100129" level="5">
     <if_sid>100102</if_sid>
-    <field name="event_id">112</field>
+    <field name="type" type="pcre2">^High Latency Detected$</field>
+    <field name="event_id">^112$</field>
     <description>High Latency Detected on $(uni_wanname)</description>
     <group>pci_dss_10.6,nist_800_53_SI-4,hipaa_164.312(b),mitre_t1499</group>
   </rule>
    <rule id="100130" level="7">
     <if_sid>100102</if_sid>
-    <field name="event_id">113</field>
+    <field name="type" type="pcre2">^Packet Loss Detected$</field>
+    <field name="event_id">^113$</field>
     <description>Packet Loss Detected on $(uni_wanname)</description>
     <group>pci_dss_10.6,nist_800_53_SI-4,hipaa_164.312(b),mitre_t1499</group>
   </rule>
   <!-- legacy WAN event_id's, to be reviewed -->
   <rule id="100122" level="8">
     <if_sid>100102</if_sid>
-    <field name="event_id">500</field>
+    <field name="type" type="pcre2">^WAN Failover(?: Detected)?$</field>
     <description>WAN Failover Detected</description>
     <group>pci_dss_10.6,nist_800_53_CP-10,nist_800_53_SI-4,hipaa_164.312(b),mitre_t1499</group>
   </rule>
   <rule id="100123" level="5">
     <if_sid>100102</if_sid>
-    <field name="event_id">501</field>
+    <field name="type" type="pcre2">^High Latency Detected$</field>
+    <field name="event_id">^501$</field>
     <description>High Latency Detected on WAN</description>
     <group>pci_dss_10.6,nist_800_53_SI-4,hipaa_164.312(b),mitre_t1499</group>
   </rule>
   <rule id="100124" level="7">
     <if_sid>100102</if_sid>
-    <field name="event_id">502</field>
+    <field name="type" type="pcre2">^Packet Loss Detected$</field>
+    <field name="event_id">^502$</field>
     <description>Packet Loss Detected on WAN</description>
     <group>pci_dss_10.6,nist_800_53_SI-4,hipaa_164.312(b),mitre_t1499</group>
   </rule>
@@ -191,19 +206,22 @@
   <!-- PoE events -->
   <rule id="100125" level="7">
     <if_sid>100102</if_sid>
-    <field name="event_id">600</field>
+    <field name="type" type="pcre2">^Insufficient PoE Output$</field>
+    <field name="event_id">^600$</field>
     <description>Insufficient PoE Output on $(uni_devname)</description>
     <group>pci_dss_10.6,nist_800_53_PE-1,hipaa_164.310(a)(2)(ii),mitre_t1200</group>
   </rule>
   <rule id="100126" level="5">
     <if_sid>100102</if_sid>
-    <field name="event_id">601</field>
+    <field name="type" type="pcre2">^AP Underpowered$</field>
+    <field name="event_id">^601$</field>
     <description>AP Underpowered: $(uni_devname)</description>
     <group>pci_dss_10.6,nist_800_53_PE-1,hipaa_164.310(a)(2)(ii),mitre_t1200</group>
   </rule>
   <rule id="100127" level="7">
     <if_sid>100102</if_sid>
-    <field name="event_id">602</field>
+    <field name="type" type="pcre2">^PoE Availability Exceeded$</field>
+    <field name="event_id">^602$</field>
     <description>PoE Availability Exceeded on $(uni_devname)</description>
     <group>pci_dss_10.6,nist_800_53_PE-1,hipaa_164.310(a)(2)(ii),mitre_t1200</group>
   </rule>
@@ -223,6 +241,7 @@
     <if_matched_sid>100106</if_matched_sid>
     <same_source_ip />
     <description>Multiple Internal Blocks from $(srcip) (possible lateral scan)</description>
+    <mitre><id>T1046</id></mitre>
     <group>pci_dss_1.3.2,pci_dss_10.2.4,nist_800_53_SC-7,nist_800_53_SI-4,hipaa_164.312(e)(1),mitre_t1046</group>
   </rule>
   <rule id="100151" level="10" frequency="10" timeframe="120">
@@ -238,9 +257,16 @@
   </rule>
   <rule id="100153" level="8" frequency="8" timeframe="60">
     <if_matched_sid>100113</if_matched_sid>
-    <same_field>uni_clientdev</same_field>
-    <description>Frequent WiFi Disconnects for $(uni_clientdev) (possible deauth attack)</description>
+    <same_field>uni_clientmac</same_field>
+    <description>Frequent WiFi Disconnects for $(uni_clientdev) [$(uni_clientmac)] (investigate signal, roaming, or deauthentication)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,nist_800_53_SI-4,hipaa_164.312(b),mitre_t1498</group>
+  </rule>
+
+  <rule id="100154" level="10" frequency="10" timeframe="120">
+    <if_matched_sid>100121</if_matched_sid>
+    <same_srcip />
+    <description>Repeated UniFi CEF Firewall Blocks from $(srcip)</description>
+    <group>pci_dss_1.3.2,nist_800_53_SC-7,nist_800_53_SI-4,</group>
   </rule>
 
   <!-- catch-all for unmatched CEF events -->
@@ -256,13 +282,13 @@
   </rule>
   <rule id="100201" level="3">
     <if_sid>100200</if_sid>
-    <field name="uni_action">associated</field>
+    <field name="uni_action">^associated$</field>
     <description>STA $(srcmac) Associated on $(uni_iface)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,hipaa_164.312(b),mitre_t1078</group>
   </rule>
   <rule id="100202" level="3">
     <if_sid>100200</if_sid>
-    <field name="uni_action">disassociated</field>
+    <field name="uni_action">^disassociated$</field>
     <description>STA $(srcmac) Disassociated from $(uni_iface)</description>
     <group>pci_dss_10.2.5,nist_800_53_AC-17,hipaa_164.312(b),mitre_t1078</group>
   </rule>
@@ -286,6 +312,7 @@
     <if_matched_sid>100204</if_matched_sid>
     <same_field>srcmac</same_field>
     <description>Multiple RADIUS Auth Failures for $(srcmac) (possible brute force)</description>
+    <mitre><id>T1110</id></mitre>
     <group>pci_dss_10.2.4,pci_dss_11.4,nist_800_53_IA-2,nist_800_53_SI-4,hipaa_164.312(d),mitre_t1110</group>
   </rule>
 </group>

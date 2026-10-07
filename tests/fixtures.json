@@ -1,0 +1,184 @@
+[
+  {
+    "name": "documented-monitoring-disconnect",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|401|WiFi Client Disconnected|2|UNIFIcategory=Monitoring UNIFIsubCategory=WiFi UNIFIclientAlias=Test Watch UNIFIclientMac=02:00:00:00:00:42 UNIFIclientIp=192.0.2.42 UNIFIwifiName=Test WiFi UNIFIlastConnectedToDeviceName=Lobby AP UNIFIlastConnectedToDeviceIp=192.0.2.5 UNIFIlastConnectedToWiFiRssi=-77",
+    "rule_id": "100113",
+    "level": 3,
+    "decoder": "unifi",
+    "fields": {
+      "uni_cat": "Monitoring",
+      "uni_lastdevname": "Lobby AP",
+      "uni_lastdevip": "192.0.2.5",
+      "uni_rssi": "-77",
+      "uni_clientmac": "02:00:00:00:00:42"
+    }
+  },
+  {
+    "name": "legacy-category-disconnect",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|401|WiFi Client Disconnected|2|UNIFIcategory=Client Devices UNIFIclientAlias=Test Watch UNIFIclientMac=02:00:00:00:00:42 UNIFIclientIp=192.0.2.42 UNIFIwifiName=Test WiFi",
+    "rule_id": "100113",
+    "level": 3,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "monitoring-connect",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|400|WiFi Client Connected|2|UNIFIcategory=Monitoring UNIFIclientAlias=Test Watch UNIFIclientMac=02:00:00:00:00:42 UNIFIclientIp=192.0.2.42 UNIFIwifiName=Test WiFi",
+    "rule_id": "100112",
+    "level": 3,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "roaming-is-not-a-firewall-block",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|402|WiFi Client Roaming|2|UNIFIcategory=Monitoring UNIFIclientAlias=Test Watch UNIFIclientMac=02:00:00:00:00:42 UNIFIclientIp=192.0.2.42 UNIFIwifiName=Test WiFi",
+    "rule_id": "100117",
+    "level": 3,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "current-cef-block",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|203|Blocked by Firewall|2|UNIFIcategory=Security UNIFIpolicyName=Block Guest to LAN src=192.0.2.42 dst=198.51.100.10 spt=12345 dpt=443 proto=TCP",
+    "rule_id": "100121",
+    "level": 7,
+    "decoder": "unifi",
+    "fields": {
+      "srcip": "192.0.2.42",
+      "srcport": "12345",
+      "dstport": "443",
+      "protocol": "TCP",
+      "srcprt": "12345",
+      "dstprt": "443",
+      "proto": "TCP",
+      "uni_policyname": "Block Guest to LAN"
+    }
+  },
+  {
+    "name": "legacy-cef-block-id-collision",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|402|Blocked by Firewall|2|UNIFIcategory=Security src=192.0.2.42",
+    "rule_id": "100121",
+    "level": 7,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "honeypot-without-assumed-id",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|999|Honeypot Triggered|2|UNIFIcategory=Security src=192.0.2.42",
+    "rule_id": "100120",
+    "level": 12,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "official-admin-event",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|544|Admin Accessed UniFi Network|2|UNIFIcategory=System UNIFIaccessMethod=web UNIFIadmin=Test Admin src=192.0.2.42",
+    "rule_id": "100114",
+    "level": 5,
+    "decoder": "unifi",
+    "fields": {
+      "uni_changeagent": "Test Admin",
+      "uni_accessway": "web"
+    }
+  },
+  {
+    "name": "config-change-context",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|546|Admin Made Config Changes|2|UNIFIcategory=System UNIFIsettingsChanges=enabled: false UNIFIsettingsSection=System UNIFIadmin=Test Admin",
+    "rule_id": "100110",
+    "level": 8,
+    "decoder": "unifi",
+    "fields": {
+      "uni_settingschanges": "enabled: false"
+    }
+  },
+  {
+    "name": "wan-failover-without-assumed-id",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|999|WAN Failover|2|UNIFIcategory=Internet UNIFIfailoverWanName=Backup ISP",
+    "rule_id": "100122",
+    "level": 8,
+    "decoder": "unifi",
+    "fields": {
+      "uni_failoverwanname": "Backup ISP"
+    }
+  },
+  {
+    "name": "latency",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|112|High Latency Detected|2|UNIFIcategory=Internet UNIFIwanName=Primary ISP",
+    "rule_id": "100129",
+    "level": 5,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "id-substring-is-not-roaming",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|1402|WiFi Client Roaming|2|UNIFIcategory=Monitoring UNIFIclientAlias=Test Watch UNIFIclientMac=02:00:00:00:00:42 UNIFIclientIp=192.0.2.42 UNIFIwifiName=Test WiFi",
+    "rule_id": "100199",
+    "level": 3,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "unknown-event-fields-at-end",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|999|Example Event|2|UNIFIhost=Office Gateway reason=maintenance cnt=2 UNIFIclientIP=2001:db8::42 UNIFIclientHostname=Test Laptop",
+    "rule_id": "100199",
+    "level": 3,
+    "decoder": "unifi",
+    "fields": {
+      "uni_host": "Office Gateway",
+      "uni_reason": "maintenance",
+      "uni_clientip": "2001:db8::42",
+      "uni_clienthostname": "Test Laptop"
+    }
+  },
+  {
+    "name": "ips",
+    "line": "Oct 07 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|888|Threat Detected and Blocked|2|UNIFIcategory=Security src=192.0.2.42 UNIFIipsSignature=Test Signature UNIFIipsSessionId=123",
+    "rule_id": "100111",
+    "level": 10,
+    "decoder": "unifi",
+    "fields": {
+      "uni_signature": "Test Signature",
+      "uni_ipssessionid": "123"
+    }
+  },
+  {
+    "name": "hostapd-associated",
+    "line": "Oct 07 10:00:00 test-ap hostapd: wlan0: STA 02:00:00:00:00:42 IEEE associated",
+    "rule_id": "100201",
+    "level": 3,
+    "decoder": "unifi-hostapd",
+    "fields": {
+      "uni_action": "associated"
+    }
+  },
+  {
+    "name": "hostapd-disassociated",
+    "line": "Oct 07 10:00:00 test-ap hostapd: wlan0: STA 02:00:00:00:00:42 IEEE disassociated",
+    "rule_id": "100202",
+    "level": 3,
+    "decoder": "unifi-hostapd",
+    "fields": {
+      "uni_action": "disassociated"
+    }
+  },
+  {
+    "name": "radius-succeeded",
+    "line": "Oct 07 10:00:00 test-ap hostapd: wlan0: STA 02:00:00:00:00:42 IEEE RADIUS authentication succeeded",
+    "rule_id": "100203",
+    "level": 5,
+    "decoder": "unifi-hostapd",
+    "fields": {
+      "uni_radius_result": "succeeded"
+    }
+  },
+  {
+    "name": "radius-failed",
+    "line": "Oct 07 10:00:00 test-ap hostapd: wlan0: STA 02:00:00:00:00:42 IEEE RADIUS authentication failed",
+    "rule_id": "100204",
+    "level": 8,
+    "decoder": "unifi-hostapd",
+    "fields": {
+      "uni_radius_result": "failed"
+    }
+  }
+]
