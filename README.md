@@ -1,7 +1,7 @@
 # unifi-wazuh
 Custom Wazuh decoders and rules for UniFi Network devices. Parses CEF (Common Event Format) syslog events and hostapd device syslog from UniFi OS and UniFi Network applications.
 
-Tested using UniFi OS 5.1.31 + UniFi Network 10.6.101 + Wazuh 4.14.
+Original live-device validation: UniFi OS 5.1.31 + UniFi Network 10.6.101 + Wazuh 4.14. Compatibility fixes are based on Ubiquiti documentation reviewed on 2026-10-07 and synthetic regressions; verify them with your firmware and the native Wazuh test suite before deployment.
 
 ## Events Covered
 
@@ -29,7 +29,7 @@ Tested using UniFi OS 5.1.31 + UniFi Network 10.6.101 + Wazuh 4.14.
 | 100119 | Wired Client Disconnected (legacy) | 3 |
 | 100120 | Honeypot Triggered | 12 |
 | 100121 | Blocked by Firewall (CEF) | 7 |
-| 100122 | WAN Failover (under review) | 8 |
+| 100122 | WAN Failover (matched by documented event name) | 8 |
 | 100123 | High Latency Detected (legacy) | 5 |
 | 100124 | Packet Loss Detected (legacy) | 7 |
 | 100125 | Insufficient PoE Output | 7 |
@@ -58,14 +58,25 @@ Tested using UniFi OS 5.1.31 + UniFi Network 10.6.101 + Wazuh 4.14.
 | 100150 | LAN block (100106) | 10 in 2 min, same src | 10 |
 | 100151 | WAN block (100107) | 10 in 2 min, same src | 10 |
 | 100152 | IPS threat (100111) | 5 in 5 min | 13 |
-| 100153 | WiFi disconnect (100113) | 8 in 1 min, same client | 8 |
+| 100153 | WiFi disconnect (100113) | 8 in 1 min, same client MAC | 8 |
+| 100154 | CEF firewall block (100121) | 10 in 2 min, same source IP | 10 |
 | 100210 | RADIUS fail (100204) | 5 in 2 min, same MAC | 10 |
 
-Rules include compliance mappings for PCI DSS, NIST 800-53, HIPAA, and MITRE ATT&CK.
+Rules include existing compliance group labels for PCI DSS, NIST 800-53 and HIPAA. Native MITRE ATT&CK mappings are provided for honeypot/scan heuristics (100120, 100150: T1046) and repeated RADIUS failures (100210: T1110). Other `mitre_t...` groups are retained as legacy tags, not native technique mappings or proof of an attack. Compliance labels do not certify compliance.
 
 ## Installation
 
-Copy the decoder and rules files to your Wazuh manager:
+### Configure the log transport
+
+In UniFi Network, go to **Integration > System Logging / SIEM**, choose **SIEM Server**, select the categories to export, and enter your Wazuh manager's address and listening port. See [Ubiquiti's current SIEM documentation](https://help.ui.com/hc/en-us/articles/33349041044119-UniFi-System-Logs-SIEM-Integration). You do not need to install a Wazuh agent on the UniFi gateway.
+
+On the Wazuh manager, add a `<remote>` syslog block **inside the existing `<ossec_config>`** in `/var/ossec/etc/ossec.conf`. [examples/ossec-unifi.conf](examples/ossec-unifi.conf) shows UDP port 514 with documentation addresses: replace the addresses and match your exporter's actual UDP/TCP transport and port. `allowed-ips` is mandatory. Allow the same traffic from the actual exporters through your network/host firewall, and avoid conflicts with another syslog listener. Preserve the existing secure agent listener. If a relay forwards logs, allow the relay's source IP instead.
+
+For TCP and UDP simultaneously, Wazuh needs separate syslog `<remote>` blocks. See [Wazuh syslog configuration](https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/syslog.html).
+
+### Install and validate the rules
+
+Back up existing custom rules/decoders and check for duplicate IDs, including the new `100154`, before copying these files. Copy the decoder and rules files to your Wazuh manager:
 
 ```bash
 cp unifi_decoders.xml /var/ossec/etc/decoders/
@@ -81,7 +92,13 @@ chown wazuh:wazuh /var/ossec/etc/decoders/unifi_decoders.xml && chmod 660 /var/o
 chown wazuh:wazuh /var/ossec/etc/rules/unifi_rules.xml && chmod 660 /var/ossec/etc/rules/unifi_rules.xml
 ```
 
-Restart the Wazuh manager:
+Validate syntax and inspect errors/warnings **before** restarting:
+
+```bash
+/var/ossec/bin/wazuh-analysisd -t
+```
+
+Then restart the Wazuh manager:
 
 ```bash
 systemctl restart wazuh-manager
@@ -100,9 +117,35 @@ Use `wazuh-analysisd` to validate the decoders and rules:
 /var/ossec/bin/wazuh-analysisd -t
 ```
 
-Paste a sample UniFi syslog line to verify the correct decoder and rules match.
+Paste representative UniFi syslog lines to verify the expected final rule IDs and decoded fields. [tests/README.md](tests/README.md) describes the sources, portable PCRE2 checks and native regression suite:
+
+```bash
+python3 tests/test_regressions.py -v
+sudo python3 tests/run_wazuh.py
+```
+
+The first command requires Python 3 and the PCRE2 8-bit shared library. It checks regex extraction and XML predicates, not Wazuh's complete runtime. The second requires an installed, running Wazuh manager with these XML files loaded, and verifies final matches and stateful correlations.
+
+## Compatibility and operational notes
+
+- WiFi connect/disconnect accepts both `Monitoring` and legacy `Client Devices`. Reused numeric IDs also require the expected event name. CEF firewall blocks, honeypot and WAN failover use documented event names rather than guessing a new ID. Other unknown IDs remain visible through rule `100199`; review your own captures before adding mappings.
+- Selected additional documented context includes client hostname, connected/last-connected AP identity, last WiFi RSSI, WiFi band/channel/auth method, configuration changes and failover WAN name. Both `UNIFIclientIp` and `UNIFIclientIP` are supported. This is not an exhaustive parser for every UniFi CEF key.
+- Standard CEF fields populate Wazuh `srcport`, `dstport` and `protocol`; the existing `srcprt`, `dstprt` and `proto` aliases are retained. Values containing spaces and the final extension field are extracted. Escaped CEF values remain escaped; no full CEF unescaping is performed.
+- WiFi disconnect correlation needs `UNIFIclientMac` and counts by MAC rather than a shared or mutable alias. It is a troubleshooting heuristic: poor signal and roaming can also cause repeated disconnects.
+- Raw firewall decoders remain limited to the existing `LAN_LAN` / `LAN_WAN` shapes. They do not claim coverage for every zone-based firewall, `WAN_LOCAL`, IPv6 netfilter or traffic-flow export.
+- Configure notifications separately. These files do not install Active Response or block traffic. For full raw-event retention, configure [Wazuh archiving and indexing](https://documentation.wazuh.com/current/user-manual/manager/event-logging.html), plus retention limits; alerts alone are not an archive of every received event.
+- After restart, confirm live events reach the dashboard and inspect `/var/ossec/logs/ossec.log`. A passing regex test or a rule listed in the dashboard does not prove the transport is working.
 
 ## Changelog
+
+2026-10-07:
+* Accept documented `Monitoring` WiFi categories while retaining `Client Devices`.
+* Bound CEF headers/keys, preserve spaced values, and extract end-of-line fields and additional documented client/AP/WAN context.
+* Support the documented client IP capitalization variant and expose standard Wazuh port/protocol fields alongside legacy aliases.
+* Guard reused/sub-string event IDs; recognize firewall blocks, honeypot and WAN failover by their documented names.
+* Add CEF firewall block correlation and count WiFi disconnects by client MAC.
+* Make hostapd association/disassociation rule predicates exclusive and add selected native MITRE mappings.
+* Add synthetic fixtures, portable PCRE2 regressions, native Wazuh regressions and a syslog configuration example.
 
 2026-09-23:
 * Merged commit #6 resolving WiFi Client Roaming events appearing as Blocked by Firewall events and added rule file policies and best practices documentation from FarmhouseNetworking
