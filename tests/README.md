@@ -15,7 +15,7 @@ Reviewed on 2026-10-07:
 Install Python 3 and the PCRE2 8-bit shared library (`libpcre2-8-0` on Debian/Ubuntu, `pcre2` via Homebrew on macOS), then run:
 
 ```bash
-python3 tests/test_regressions.py -v
+python3 -m unittest discover -s tests -v
 ```
 
 These checks compile the actual decoder regexes with PCRE2, verify extraction and selected rule predicates, and check XML dependencies. They **do not emulate** syslog pre-decoding, decoder precedence, rule selection, or frequency counters.
@@ -33,3 +33,19 @@ sudo python3 tests/run_wazuh.py
 The runner checks final rule ID, alert level and decoder with `-U`, plus expected decoded fields. It replays same-IP/different-IP CEF blocks, changing aliases with the same MAC, duplicate aliases with different MACs, and repeated RADIUS failures in separate logtest sessions. It does not modify the manager or any configuration.
 
 Run this native suite before deploying. A portable pass alone does not prove that the rules attach correctly or that your firmware exports every field. Collect representative logs from your own devices and check unknown events captured by rule `100199`.
+
+## Investigation additions (2026-11-09)
+
+There are 29 synthetic fixtures and 23 native correlation sequences. WAN fixtures
+exercise selected WAN chains, independent field ordering, IPv6, ICMP without
+ports, and legacy LAN decoding. Admin fixtures preserve actor, source and host
+identity. Honeypot fixtures include optional device/VLAN context.
+
+Native sequences test scan → allow, reverse order, no scan, no allow, other source,
+distributed sources, login → sensitive change, other actor/source/gateway, missing
+identity and routine changes. They use one fixed logtest location and do not
+test real-time expiry; do not infer either property from a portable pass. See
+[deployment and acceptance boundaries](../docs/DETECTIONS.md).
+
+The portable suite also tests timestamp ordering, exact timeline filters,
+non-UniFi exclusion and malformed timeline inputs. No live logs are included.

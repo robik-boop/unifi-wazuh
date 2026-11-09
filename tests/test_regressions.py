@@ -1,5 +1,7 @@
 """PCRE2 and XML checks; these do NOT emulate Wazuh's rule engine."""
 from pathlib import Path
+import importlib.util
+import json
 import unittest
 import xml.etree.ElementTree as ET
 from pcre2 import search
@@ -9,9 +11,9 @@ DECODERS = ET.fromstring('<root>' + (ROOT / 'unifi_decoders.xml').read_text() + 
 RULES = ET.parse(ROOT / 'unifi_rules.xml').getroot()
 
 
-def pattern(field):
+def pattern(field, decoder_name='unifi'):
     for decoder in DECODERS:
-        if decoder.findtext('order') == field:
+        if decoder.get('name') == decoder_name and decoder.findtext('order') == field:
             return decoder.findtext('regex')
     raise KeyError(field)
 
@@ -24,6 +26,70 @@ def allows(rule_id, fields):
 
 
 class Regressions(unittest.TestCase):
+    def test_wan_selector_is_scoped(self):
+        selector = next(d.findtext('prematch') for d in DECODERS
+                        if d.get('name') == 'unifi-wan-firewall' and d.find('parent') is None)
+        for chain in ['WAN_LOCAL', 'WAN_IN', 'WAN_LAN', 'WAN_DMZ']:
+            for action in ['A', 'D', 'R']:
+                self.assertIsNotNone(search(selector, f'kernel: [{chain}-{action}-7] SRC=203.0.113.42'))
+        for chain in ['LAN_LAN', 'LAN_WAN', 'VPN_WAN', 'NOTWAN_LOCAL']:
+            self.assertIsNone(search(selector, f'kernel: [{chain}-D-7]'))
+        self.assertIsNone(search(selector, 'kernel: [WAN_LOCAL-X-7]'))
+
+    def test_fixture_field_extraction(self):
+        # Exercise actual expressions, not Wazuh precedence or rule selection.
+        for case in json.loads((ROOT / 'tests/fixtures.json').read_text()):
+            with self.subTest(case=case['name']):
+                text = case['line'].split('CEF:', 1)[-1]
+                extracted = {}
+                for decoder in DECODERS:
+                    if decoder.get('name') != case['decoder'] or decoder.find('regex') is None:
+                        continue
+                    subject = text
+                    if decoder.find('regex').get('offset') == 'after_prematch':
+                        subject = text.split(decoder.findtext('prematch'), 1)[-1]
+                    values = search(decoder.findtext('regex'), subject)
+                    if values is not None:
+                        fields = [f.strip() for f in decoder.findtext('order').split(',')]
+                        extracted.update(zip(fields, values))
+                for field, expected in case['fields'].items():
+                    self.assertEqual(extracted.get(field), expected, field)
+
+    def test_wan_fields_are_independent(self):
+        text = '[WAN_IN-A-7] OUT=br0 DST=2001:db8::10 SRC=203.0.113.42 DPT=443 PROTO=TCP SPT=44000'
+        for field, value in [('srcip', '203.0.113.42'), ('dstip', '2001:db8::10'),
+                             ('dstport', '443'), ('protocol', 'TCP')]:
+            self.assertEqual(search(pattern(field, 'unifi-wan-firewall'), text), (value,))
+        self.assertIsNone(search(pattern('srcport', 'unifi-wan-firewall'), 'PROTO=ICMP'))
+        self.assertIsNone(search(pattern('srcip', 'unifi-wan-firewall'), 'X_SRC=203.0.113.42'))
+
+    def test_sensitive_sections_are_bounded(self):
+        for section in ['Firewall', 'Port Forwarding', 'SETTINGS_VPN', 'WireGuard', 'Admin', 'Zone Policies']:
+            self.assertTrue(allows('100140', {'uni_changedsection': section}), section)
+        for section in ['WiFi', 'System', 'NotFirewall', 'Firewallish', 'My VPN']:
+            self.assertFalse(allows('100140', {'uni_changedsection': section}), section)
+
+    def test_sequences_require_current_event_and_identity(self):
+        scan = RULES.find("rule[@id='100163']")
+        followup = RULES.find("rule[@id='100164']")
+        admin = RULES.find("rule[@id='100141']")
+        self.assertEqual(scan.findtext('if_sid'), '100161')
+        self.assertEqual(scan.findtext('if_matched_sid'), '100161')
+        self.assertEqual(followup.findtext('if_sid'), '100162')
+        self.assertEqual(followup.findtext('if_matched_sid'), '100163')
+        self.assertEqual(followup.get('frequency'), '2')
+        self.assertEqual(admin.findtext('if_sid'), '100140')
+        self.assertEqual(admin.findtext('if_matched_sid'), '100114')
+        self.assertEqual([e.text for e in admin.findall('same_field')], ['uni_changeagent', 'uni_host'])
+        for rule in [scan, followup, admin]:
+            self.assertIsNotNone(rule.find('same_srcip'))
+            self.assertIsNotNone(rule.find('same_location'))
+        for fields in [{}, {'uni_changeagent': 'Test Admin'}, {'uni_host': 'Test Gateway'}]:
+            self.assertFalse(allows('100141', fields))
+        for rule_id in ['100141', '100161', '100162']:
+            self.assertEqual([n.text for n in RULES.find(f"rule[@id='{rule_id}']").findall('srcip')],
+                             ['0.0.0.0/0', '::/0'])
+
     def test_compile_all_pcre2_expressions(self):
         for root in [DECODERS, RULES]:
             for element in root.iter():

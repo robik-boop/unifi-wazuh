@@ -56,8 +56,8 @@
   <rule id="100110" level="8">
     <if_sid>100102</if_sid>
     <field name="type">Config\s\w+</field>
-    <description>UniFi Config Change by $(uni_changeagent) in $(uni_changedsection)</description>
-    <group>pci_dss_10.5.5,pci_dss_11.5,nist_800_53_CM-3,nist_800_53_CM-6,nist_800_53_AU-12,hipaa_164.312(b),mitre_t1562</group>
+    <description>UniFi Config Change by $(uni_changeagent) from $(srcip) in $(uni_changedsection): $(uni_settingschanges)</description>
+    <group>unifi_admin,unifi_config,pci_dss_10.5.5,pci_dss_11.5,nist_800_53_CM-3,nist_800_53_CM-6,nist_800_53_AU-12,hipaa_164.312(b),mitre_t1562</group>
   </rule>
 
   <!-- threat detection -->
@@ -98,8 +98,8 @@
     <if_sid>100102</if_sid>
     <field name="type" type="pcre2">^Admin Accessed UniFi(?: Network)?$</field>
     <field name="event_id">^544$</field>
-    <description>Admin Accessed UniFi via $(uni_accessway)</description>
-    <group>pci_dss_10.2.2,nist_800_53_AC-6,nist_800_53_AU-3,hipaa_164.312(a)(1),mitre_t1078</group>
+    <description>Admin $(uni_changeagent) Accessed UniFi from $(srcip) via $(uni_accessway)</description>
+    <group>unifi_admin,unifi_admin_login,pci_dss_10.2.2,nist_800_53_AC-6,nist_800_53_AU-3,hipaa_164.312(a)(1),mitre_t1078</group>
   </rule>
 
   <!-- device events -->
@@ -224,6 +224,77 @@
     <field name="event_id">^602$</field>
     <description>PoE Availability Exceeded on $(uni_devname)</description>
     <group>pci_dss_10.6,nist_800_53_PE-1,hipaa_164.310(a)(2)(ii),mitre_t1200</group>
+  </rule>
+
+  <!-- Sensitive sections are review context, not proof of malicious activity.
+       The follow-up requires the same actor, source IP, CEF host and location.
+       frequency=2 means a prior matching login plus the current config event. -->
+  <rule id="100140" level="9">
+    <if_sid>100110</if_sid>
+    <field name="uni_changedsection" type="pcre2">(?i)^(?:SETTINGS_)?(?:FIREWALL|PORT[ _-]?FORWARD(?:ING)?|SECURITY|VPN|WIREGUARD|ADMIN|TRAFFIC|ZONE)(?:$|[ _-])</field>
+    <description>Sensitive UniFi config change by $(uni_changeagent) from $(srcip) on $(uni_host): $(uni_changedsection) / $(uni_changedentry) / $(uni_settingschanges)</description>
+    <group>unifi_admin,unifi_config,unifi_sensitive_config,</group>
+  </rule>
+
+  <rule id="100141" level="10" frequency="2" timeframe="900">
+    <if_sid>100140</if_sid>
+    <if_matched_sid>100114</if_matched_sid>
+    <field name="uni_changeagent" type="pcre2">\S</field>
+    <field name="uni_host" type="pcre2">\S</field>
+    <srcip>0.0.0.0/0</srcip>
+    <srcip>::/0</srcip>
+    <same_srcip />
+    <same_location />
+    <same_field>uni_changeagent</same_field>
+    <same_field>uni_host</same_field>
+    <description>UniFi admin login followed by sensitive config change: $(uni_changeagent) from $(srcip) on $(uni_host), $(uni_changedsection) / $(uni_settingschanges)</description>
+    <group>unifi_admin,unifi_config,unifi_sensitive_config,unifi_admin_sequence,</group>
+  </rule>
+
+  <!-- WAN logs: single drops remain searchable; only a burst escalates.
+       Match location as well as IP to separate direct syslog exporters. -->
+  <rule id="100160" level="0">
+    <decoded_as>unifi-wan-firewall</decoded_as>
+    <description>UniFi WAN firewall event</description>
+    <group>unifi_wan_firewall,</group>
+  </rule>
+
+  <rule id="100161" level="3">
+    <if_sid>100160</if_sid>
+    <field name="uni_fwaction" type="pcre2">^[DR]$</field>
+    <srcip>0.0.0.0/0</srcip>
+    <srcip>::/0</srcip>
+    <description>UniFi WAN drop/reject: $(srcip) to $(dstip):$(dstport), $(uni_fwchain), $(uni_fwpolicy)</description>
+    <group>unifi_wan_firewall,unifi_wan_drop,</group>
+  </rule>
+
+  <rule id="100162" level="3">
+    <if_sid>100160</if_sid>
+    <field name="uni_fwaction" type="pcre2">^A$</field>
+    <srcip>0.0.0.0/0</srcip>
+    <srcip>::/0</srcip>
+    <description>UniFi WAN allowed: $(srcip) to $(dstip):$(dstport), $(uni_fwchain), $(uni_fwpolicy)</description>
+    <group>unifi_wan_firewall,unifi_wan_allow,</group>
+  </rule>
+
+  <rule id="100163" level="10" frequency="20" timeframe="120">
+    <if_sid>100161</if_sid>
+    <if_matched_sid>100161</if_matched_sid>
+    <same_srcip />
+    <same_location />
+    <description>Repeated UniFi WAN drops from $(srcip) (possible scan or retries)</description>
+    <mitre><id>T1046</id></mitre>
+    <group>unifi_wan_firewall,unifi_wan_scan,</group>
+  </rule>
+
+  <rule id="100164" level="12" frequency="2" timeframe="3600">
+    <if_sid>100162</if_sid>
+    <if_matched_sid>100163</if_matched_sid>
+    <same_srcip />
+    <same_location />
+    <description>UniFi WAN source $(srcip) allowed after repeated drops: $(dstip):$(dstport), $(uni_fwchain), $(uni_fwpolicy) (investigate; not proof of compromise)</description>
+    <mitre><id>T1046</id></mitre>
+    <group>unifi_wan_firewall,unifi_wan_allow,unifi_scan_then_allow,</group>
   </rule>
 
   <!-- enrichment: IPS threat from internal source -->
