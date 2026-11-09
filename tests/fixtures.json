@@ -180,5 +180,135 @@
     "fields": {
       "uni_radius_result": "failed"
     }
+  },
+  {
+    "name": "wan-drop-ipv4",
+    "line": "Nov 09 10:00:00 test-gateway kernel: [WAN_LOCAL-D-10005] DESCR=\"Default WAN Drop\" IN=eth8 OUT= MAC=02:00:00:00:00:01 SRC=203.0.113.42 DST=192.0.2.1 LEN=60 TOS=0x00 PREC=0x00 TTL=52 ID=1 PROTO=TCP SPT=45000 DPT=22",
+    "rule_id": "100161",
+    "level": 3,
+    "decoder": "unifi-wan-firewall",
+    "fields": {
+      "uni_fwchain": "WAN_LOCAL",
+      "uni_fwaction": "D",
+      "uni_fwpolicy": "Default WAN Drop",
+      "srcip": "203.0.113.42",
+      "dstip": "192.0.2.1",
+      "srcport": "45000",
+      "dstport": "22",
+      "protocol": "TCP"
+    }
+  },
+  {
+    "name": "wan-reject",
+    "line": "Nov 09 10:00:00 test-gateway kernel: [WAN_LOCAL-R-10005] DESCR=\"Default WAN Drop\" IN=eth8 OUT= MAC=02:00:00:00:00:01 SRC=203.0.113.42 DST=192.0.2.1 LEN=60 TOS=0x00 PREC=0x00 TTL=52 ID=1 PROTO=TCP SPT=45000 DPT=22",
+    "rule_id": "100161",
+    "level": 3,
+    "decoder": "unifi-wan-firewall",
+    "fields": {
+      "uni_fwaction": "R"
+    }
+  },
+  {
+    "name": "wan-allow-ipv4",
+    "line": "Nov 09 10:00:00 test-gateway kernel: [WAN_LOCAL-A-10005] DESCR=\"Default WAN Drop\" IN=eth8 OUT= MAC=02:00:00:00:00:01 SRC=203.0.113.42 DST=192.0.2.1 LEN=60 TOS=0x00 PREC=0x00 TTL=52 ID=1 PROTO=TCP SPT=45000 DPT=51820",
+    "rule_id": "100162",
+    "level": 3,
+    "decoder": "unifi-wan-firewall",
+    "fields": {
+      "uni_fwaction": "A",
+      "dstport": "51820"
+    }
+  },
+  {
+    "name": "wan-allow-ipv6-no-mac-or-policy",
+    "line": "Nov 09 10:00:00 test-gateway kernel: [WAN_IN-A-7] OUT=br0 IN=eth8 DST=2001:db8:2::10 SRC=2001:db8:1::42 PROTO=TCP DPT=443 SPT=45000",
+    "rule_id": "100162",
+    "level": 3,
+    "decoder": "unifi-wan-firewall",
+    "fields": {
+      "srcip": "2001:db8:1::42",
+      "dstip": "2001:db8:2::10",
+      "dstport": "443",
+      "protocol": "TCP"
+    }
+  },
+  {
+    "name": "wan-icmp-no-ports",
+    "line": "Nov 09 10:00:00 test-gateway kernel: [WAN_DMZ-D-7] IN=eth8 OUT=br1 SRC=203.0.113.42 DST=192.0.2.10 PROTO=ICMP TYPE=8 CODE=0",
+    "rule_id": "100161",
+    "level": 3,
+    "decoder": "unifi-wan-firewall",
+    "fields": {
+      "protocol": "ICMP",
+      "uni_fwchain": "WAN_DMZ"
+    }
+  },
+  {
+    "name": "legacy-lan-firewall",
+    "line": "Nov 09 10:00:00 test-gateway kernel: [LAN_LAN-D-7] DESCR=\"Legacy LAN rule\" IN=br0 OUT=br1 MAC=02:00:00:00:00:01:02:00:00:00:00:02:08:00 SRC=192.0.2.42 DST=198.51.100.10 LEN=60 TOS=0 PREC=0x00 TTL=64 ID=1 PROTO=TCP SPT=45000 DPT=22",
+    "rule_id": "100106",
+    "level": 7,
+    "decoder": "unifi-lan2lan",
+    "fields": {
+      "srcip": "192.0.2.42",
+      "dstprt": "22"
+    }
+  },
+  {
+    "name": "admin-login-with-identity",
+    "line": "Nov 09 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|544|Admin Accessed UniFi Network|2|UNIFIcategory=System UNIFIhost=Test Gateway UNIFIadmin=Test Admin UNIFIaccessMethod=web src=192.0.2.42",
+    "rule_id": "100114",
+    "level": 5,
+    "decoder": "unifi",
+    "fields": {
+      "uni_host": "Test Gateway",
+      "uni_changeagent": "Test Admin",
+      "srcip": "192.0.2.42"
+    }
+  },
+  {
+    "name": "sensitive-config-change",
+    "line": "Nov 09 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|546|Admin Made Config Changes|2|UNIFIcategory=System UNIFIhost=Test Gateway UNIFIadmin=Test Admin src=192.0.2.42 UNIFIsettingsSection=Firewall UNIFIsettingsEntry=Test Rule UNIFIsettingsChanges=enabled: false",
+    "rule_id": "100140",
+    "level": 9,
+    "decoder": "unifi",
+    "fields": {
+      "uni_changedsection": "Firewall",
+      "uni_changedentry": "Test Rule",
+      "uni_settingschanges": "enabled: false",
+      "uni_host": "Test Gateway"
+    }
+  },
+  {
+    "name": "settings-prefix-sensitive-change",
+    "line": "Nov 09 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|546|Admin Made Config Changes|2|UNIFIcategory=System UNIFIhost=Test Gateway UNIFIadmin=Test Admin src=192.0.2.42 UNIFIsettingsSection=SETTINGS_VPN UNIFIsettingsEntry=Test Rule UNIFIsettingsChanges=enabled: false",
+    "rule_id": "100140",
+    "level": 9,
+    "decoder": "unifi",
+    "fields": {
+      "uni_changedsection": "SETTINGS_VPN"
+    }
+  },
+  {
+    "name": "non-sensitive-config-change",
+    "line": "Nov 09 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|546|Admin Made Config Changes|2|UNIFIcategory=System UNIFIhost=Test Gateway UNIFIadmin=Test Admin src=192.0.2.42 UNIFIsettingsSection=WiFi UNIFIsettingsEntry=Test Rule UNIFIsettingsChanges=enabled: false",
+    "rule_id": "100110",
+    "level": 8,
+    "decoder": "unifi",
+    "fields": {}
+  },
+  {
+    "name": "honeypot-device-context",
+    "line": "Nov 09 10:00:00 test-gateway CEF:0|Ubiquiti|UniFi Network|10.6.101|999|Honeypot Triggered|2|UNIFIcategory=Security UNIFIhost=Test Gateway src=192.0.2.42 UNIFIclientAlias=Test Camera UNIFIclientMac=02:00:00:00:00:42 UNIFInetworkName=IoT UNIFInetworkVlan=20",
+    "rule_id": "100120",
+    "level": 12,
+    "decoder": "unifi",
+    "fields": {
+      "uni_clientdev": "Test Camera",
+      "uni_clientmac": "02:00:00:00:00:42",
+      "uni_netname": "IoT",
+      "uni_netvlan": "20",
+      "srcip": "192.0.2.42"
+    }
   }
 ]

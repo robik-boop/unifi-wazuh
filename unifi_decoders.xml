@@ -21,6 +21,54 @@ Jul 30 05:35:34 udr7 CEF:0|Ubiquiti|UniFi Network|9.3.45|400|WiFi Client Connect
   <order>type, uni_rulename, inbound, outbound, intmac, devmac, srcip, dstip, proto, srcprt, dstprt</order>
 </decoder>
 
+<!-- WAN netfilter logs are a separate stream from CEF. Limit the selector to
+     known WAN chains; retain the original LAN decoder names and behavior. -->
+<decoder name="unifi-wan-firewall">
+  <prematch type="pcre2">\[WAN_(?:LOCAL|IN|LAN|DMZ)-[ADR]-\d+\]</prematch>
+</decoder>
+
+<decoder name="unifi-wan-firewall">
+  <parent>unifi-wan-firewall</parent>
+  <regex type="pcre2">\[(WAN_(?:LOCAL|IN|LAN|DMZ))-([ADR])-\d+\]</regex>
+  <order>uni_fwchain, uni_fwaction</order>
+</decoder>
+
+<decoder name="unifi-wan-firewall">
+  <parent>unifi-wan-firewall</parent>
+  <regex type="pcre2">(?:^|\s)DESCR="([^"]*)"</regex>
+  <order>uni_fwpolicy</order>
+</decoder>
+
+<decoder name="unifi-wan-firewall">
+  <parent>unifi-wan-firewall</parent>
+  <regex type="pcre2">(?:^|\s)SRC=([0-9a-fA-F:.]+)(?=\s|$)</regex>
+  <order>srcip</order>
+</decoder>
+
+<decoder name="unifi-wan-firewall">
+  <parent>unifi-wan-firewall</parent>
+  <regex type="pcre2">(?:^|\s)DST=([0-9a-fA-F:.]+)(?=\s|$)</regex>
+  <order>dstip</order>
+</decoder>
+
+<decoder name="unifi-wan-firewall">
+  <parent>unifi-wan-firewall</parent>
+  <regex type="pcre2">(?:^|\s)SPT=(\d+)(?=\s|$)</regex>
+  <order>srcport</order>
+</decoder>
+
+<decoder name="unifi-wan-firewall">
+  <parent>unifi-wan-firewall</parent>
+  <regex type="pcre2">(?:^|\s)DPT=(\d+)(?=\s|$)</regex>
+  <order>dstport</order>
+</decoder>
+
+<decoder name="unifi-wan-firewall">
+  <parent>unifi-wan-firewall</parent>
+  <regex type="pcre2">(?:^|\s)PROTO=(\w+)(?=\s|$)</regex>
+  <order>protocol</order>
+</decoder>
+
 <!-- base -->
 <decoder name="unifi">
   <parent>unifi</parent>

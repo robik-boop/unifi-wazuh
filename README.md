@@ -39,6 +39,7 @@ Original live-device validation: UniFi OS 5.1.31 + UniFi Network 10.6.101 + Wazu
 | 100129 | High Latency Detected | 5 |
 | 100130 | Packet Loss Detected | 7 |
 | 100131 | Device Update Failed | 8 |
+| 100140 | Sensitive configuration section changed | 9 |
 | 100199 | Unmatched CEF Event (catch-all) | 3 |
 
 ### Hostapd Rules
@@ -60,9 +61,21 @@ Original live-device validation: UniFi OS 5.1.31 + UniFi Network 10.6.101 + Wazu
 | 100152 | IPS threat (100111) | 5 in 5 min | 13 |
 | 100153 | WiFi disconnect (100113) | 8 in 1 min, same client MAC | 8 |
 | 100154 | CEF firewall block (100121) | 10 in 2 min, same source IP | 10 |
+| 100141 | Sensitive change (100140) after admin login (100114) | 15 min, same actor, source, host and location | 10 |
+| 100163 | Inbound WAN drops/rejects (100161) | 20 in 2 min, same source and location | 10 |
+| 100164 | Inbound WAN allow (100162) after 100163 | 1 hour, same source and location | 12 |
 | 100210 | RADIUS fail (100204) | 5 in 2 min, same MAC | 10 |
 
 Rules include existing compliance group labels for PCI DSS, NIST 800-53 and HIPAA. Native MITRE ATT&CK mappings are provided for honeypot/scan heuristics (100120, 100150: T1046) and repeated RADIUS failures (100210: T1110). Other `mitre_t...` groups are retained as legacy tags, not native technique mappings or proof of an attack. Compliance labels do not certify compliance.
+
+### Investigation workflows
+
+Additional WAN netfilter rules 100160–100164 classify inbound allow/drop/reject
+records and highlight an allow after repeated drops. Rules 100140–100141 label
+sensitive settings changes and link them to prior access by the same administrator.
+[docs/DETECTIONS.md](docs/DETECTIONS.md) covers required streams, identity boundaries,
+dashboard filters, the offline timeline tool and per-VLAN honeypot acceptance.
+These are investigation heuristics; native engine and live-event validation remain pending.
 
 ## Installation
 
@@ -76,7 +89,7 @@ For TCP and UDP simultaneously, Wazuh needs separate syslog `<remote>` blocks. S
 
 ### Install and validate the rules
 
-Back up existing custom rules/decoders and check for duplicate IDs, including the new `100154`, before copying these files. Copy the decoder and rules files to your Wazuh manager:
+Back up existing custom rules/decoders and check for duplicate IDs, including `100140`–`100141`, `100154` and `100160`–`100164`, before copying these files. Copy the decoder and rules files to your Wazuh manager:
 
 ```bash
 cp unifi_decoders.xml /var/ossec/etc/decoders/
@@ -120,7 +133,7 @@ Use `wazuh-analysisd` to validate the decoders and rules:
 Paste representative UniFi syslog lines to verify the expected final rule IDs and decoded fields. [tests/README.md](tests/README.md) describes the sources, portable PCRE2 checks and native regression suite:
 
 ```bash
-python3 tests/test_regressions.py -v
+python3 -m unittest discover -s tests -v
 sudo python3 tests/run_wazuh.py
 ```
 
@@ -132,11 +145,16 @@ The first command requires Python 3 and the PCRE2 8-bit shared library. It check
 - Selected additional documented context includes client hostname, connected/last-connected AP identity, last WiFi RSSI, WiFi band/channel/auth method, configuration changes and failover WAN name. Both `UNIFIclientIp` and `UNIFIclientIP` are supported. This is not an exhaustive parser for every UniFi CEF key.
 - Standard CEF fields populate Wazuh `srcport`, `dstport` and `protocol`; the existing `srcprt`, `dstprt` and `proto` aliases are retained. Values containing spaces and the final extension field are extracted. Escaped CEF values remain escaped; no full CEF unescaping is performed.
 - WiFi disconnect correlation needs `UNIFIclientMac` and counts by MAC rather than a shared or mutable alias. It is a troubleshooting heuristic: poor signal and roaming can also cause repeated disconnects.
-- Raw firewall decoders remain limited to the existing `LAN_LAN` / `LAN_WAN` shapes. They do not claim coverage for every zone-based firewall, `WAN_LOCAL`, IPv6 netfilter or traffic-flow export.
+- Raw firewall decoders retain the existing `LAN_LAN` / `LAN_WAN` shapes and add selected `WAN_LOCAL`, `WAN_IN`, `WAN_LAN` and `WAN_DMZ` A/D/R records, including IPv6 and ICMP field extraction. This is not coverage for every zone-based firewall or traffic-flow export. WAN correlation needs the separate firewall syslog stream with policy logging enabled.
 - Configure notifications separately. These files do not install Active Response or block traffic. For full raw-event retention, configure [Wazuh archiving and indexing](https://documentation.wazuh.com/current/user-manual/manager/event-logging.html), plus retention limits; alerts alone are not an archive of every received event.
 - After restart, confirm live events reach the dashboard and inspect `/var/ossec/logs/ossec.log`. A passing regex test or a rule listed in the dashboard does not prove the transport is working.
 
 ## Changelog
+
+2026-11-09:
+* Add scoped WAN netfilter parsing and repeated-drop → allow investigation rules.
+* Add sensitive settings classification and same-admin/source/host access → change correlation.
+* Include an offline alert timeline, per-VLAN honeypot acceptance steps, 29 synthetic fixtures and expanded positive/negative native sequences.
 
 2026-10-07:
 * Accept documented `Monitoring` WiFi categories while retaining `Client Devices`.
